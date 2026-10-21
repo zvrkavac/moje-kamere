@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="220dp"
+    android:layout_margin="8dp"
+    android:background="@drawable/tile_bg"
+    android:focusable="true"
+    android:focusableInTouchMode="false"
+    android:padding="4dp">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/tilePlayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/tile_inner" />
+
+    <TextView
+        android:id="@+id/tileName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#99000000"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:textColor="@color/text"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</FrameLayout>

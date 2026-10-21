@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Moje Kamere</string>
+    <string name="settings">Postavke</string>
+    <string name="settings_title">Postavke kamera</string>
+    <string name="add_camera">Dodaj kameru</string>
+    <string name="edit_camera">Uredi kameru</string>
+    <string name="delete_camera">Obriši kameru</string>
+    <string name="no_cameras">Nema kamera. Dodaj kameru u Postavkama.</string>
+    <string name="field_name">Ime kamere</string>
+    <string name="field_url">RTSP adresa</string>
+    <string name="fill_both">Popuni ime i adresu.</string>
+    <string name="save">Sačuvaj</string>
+    <string name="cancel">Otkaži</string>
+    <string name="edit">Uredi</string>
+    <string name="delete">Obriši</string>
+</resources>
