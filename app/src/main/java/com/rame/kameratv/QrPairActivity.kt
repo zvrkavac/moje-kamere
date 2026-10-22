@@ -14,6 +14,8 @@ import fi.iki.elonen.NanoHTTPD
 class QrPairActivity : AppCompatActivity() {
 
     private var server: PairServer? = null
+    private var addedCount = 0
+    private lateinit var statusView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,7 +24,7 @@ class QrPairActivity : AppCompatActivity() {
         val ip = NetworkScanner.localIp()
         val urlView = findViewById<TextView>(R.id.qrUrl)
         val qrImage = findViewById<ImageView>(R.id.qrImage)
-        val status = findViewById<TextView>(R.id.qrStatus)
+        statusView = findViewById(R.id.qrStatus)
 
         if (ip == null) {
             urlView.text = getString(R.string.qr_no_network)
@@ -50,10 +52,18 @@ class QrPairActivity : AppCompatActivity() {
 
         val url = "http://$ip:$port/"
         urlView.text = url
-        status.text = getString(R.string.qr_instructions)
+        statusView.text = getString(R.string.qr_instructions)
         try {
             qrImage.setImageBitmap(makeQr(url, 600))
         } catch (_: Exception) {
+        }
+    }
+
+    private fun onCameraAdded(name: String) {
+        runOnUiThread {
+            addedCount++
+            statusView.text = getString(R.string.qr_added_count, addedCount)
+            Toast.makeText(this, getString(R.string.qr_added, name), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -100,8 +110,8 @@ class QrPairActivity : AppCompatActivity() {
                     val finalName = if (name.isNotEmpty()) name else "Kamera $ip"
                     runOnUiThread {
                         CameraStore.add(this@QrPairActivity, finalName, url)
-                        Toast.makeText(this@QrPairActivity, getString(R.string.qr_added, finalName), Toast.LENGTH_LONG).show()
                     }
+                    onCameraAdded(finalName)
                     newFixedLengthResponse(Response.Status.OK, "text/html; charset=utf-8", successPage(finalName))
                 } else {
                     newFixedLengthResponse(Response.Status.OK, "text/html; charset=utf-8", formPage(null))
@@ -137,7 +147,7 @@ $err
   <label>Ime kamere</label>
   <input name="name" placeholder="npr. Dvoriste" autocomplete="off">
   <label>IP adresa kamere</label>
-  <input name="ip" placeholder="192.168.0.103" inputmode="decimal" autocomplete="off" required>
+  <input id="ip" name="ip" placeholder="192.168.0.103" inputmode="numeric" autocomplete="off" required>
   <label>Korisnik</label>
   <input name="user" placeholder="npr. admin" autocomplete="off">
   <label>Lozinka</label>
@@ -147,8 +157,34 @@ $err
     <div><label>Putanja</label><input name="path" value="/stream1"></div>
   </div>
   <button type="submit">Dodaj kameru na TV</button>
-  <p><small>Format: rtsp://korisnik:lozinka@IP:port/putanja</small></p>
-</form></div></body></html>
+  <p><small>Samo kucaj brojeve - tacke se dodaju same.</small></p>
+</form></div>
+<script>
+(function(){
+  var ip=document.getElementById('ip');
+  if(!ip) return;
+  function fmt(s){
+    var d=s.replace(/[^0-9]/g,'').slice(0,12);
+    var oct=[], cur='';
+    for(var i=0;i<d.length;i++){
+      var ch=d.charAt(i);
+      if(cur==='0'){ oct.push('0'); cur=ch; }
+      else{
+        var nd=cur+ch;
+        if(parseInt(nd,10)>255 || cur.length===3){ oct.push(cur); cur=ch; }
+        else cur=nd;
+      }
+      if(oct.length===4){ cur=''; break; }
+    }
+    if(cur!=='' && oct.length<4) oct.push(cur);
+    return oct.slice(0,4).join('.');
+  }
+  ip.addEventListener('input',function(){
+    this.value=fmt(this.value);
+  });
+})();
+</script>
+</body></html>
 """.trimIndent()
     }
 
@@ -158,12 +194,13 @@ $err
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dodano</title>
 <style>body{font-family:system-ui,sans-serif;background:#0E0F13;color:#fff;margin:0;padding:30px;text-align:center}
-.ok{font-size:54px}h1{font-size:22px}a{display:inline-block;margin-top:20px;color:#3B82F6}</style>
+.ok{font-size:64px;color:#22c55e}h1{font-size:22px}p{color:#9AA0AA}
+a{display:inline-block;margin-top:22px;padding:13px 20px;background:#3B82F6;color:#fff;border-radius:10px;text-decoration:none;font-weight:700}</style>
 </head><body>
 <div class="ok">&#10003;</div>
 <h1>Kamera "${esc(name)}" je dodana na TV!</h1>
-<p>Mozes dodati jos jednu ili zatvoriti.</p>
-<a href="/">+ Dodaj jos jednu kameru</a>
+<p>Spremljeno. Pogledaj TV - kamera je na listi.</p>
+<a href="/">+ Dodaj jos jednu</a>
 </body></html>
 """.trimIndent()
     }

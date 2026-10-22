@@ -10,14 +10,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
-
-
-/**
- * Manage the camera list: add, edit, delete. Usable with a TV remote.
- */
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var container: LinearLayout
+    private lateinit var updateStatus: TextView
+    private var checking = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,11 +26,51 @@ class SettingsActivity : AppCompatActivity() {
             showEditDialog(null)
         }
 
-        val urlField = findViewById<EditText>(R.id.updateUrlField)
-        urlField.setText(CameraStore.getUpdateUrl(this))
-        findViewById<Button>(R.id.saveUrlButton).setOnClickListener {
-            CameraStore.setUpdateUrl(this, urlField.text.toString())
-            Toast.makeText(this, R.string.saved, Toast.LENGTH_SHORT).show()
+        val versionText = findViewById<TextView>(R.id.versionText)
+        updateStatus = findViewById(R.id.updateStatus)
+        versionText.text = getString(R.string.version_label, versionName(), versionCode())
+        updateStatus.text = ""
+
+        findViewById<Button>(R.id.checkUpdateButton).setOnClickListener {
+            checkUpdate()
+        }
+    }
+
+    private fun versionName(): String {
+        return try {
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "?"
+        } catch (_: Exception) {
+            "?"
+        }
+    }
+
+    private fun versionCode(): Long = UpdateChecker.currentVersionCode(this)
+
+    private fun checkUpdate() {
+        if (checking) return
+        checking = true
+        updateStatus.text = getString(R.string.update_checking)
+        UpdateChecker.check(this, CameraStore.getUpdateUrl(this)) { info ->
+            runOnUiThread {
+                checking = false
+                if (info == null) {
+                    updateStatus.text = getString(R.string.update_up_to_date)
+                } else {
+                    updateStatus.text = getString(R.string.update_found, info.versionName)
+                    AlertDialog.Builder(this)
+                        .setTitle(R.string.update_title)
+                        .setMessage(getString(R.string.update_available, info.versionName))
+                        .setPositiveButton(R.string.update_now) { _, _ ->
+                            UpdateChecker.downloadAndInstall(this, info.apkUrl) { err ->
+                                runOnUiThread {
+                                    Toast.makeText(this, err, Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                        .setNegativeButton(R.string.later, null)
+                        .show()
+                }
+            }
         }
     }
 

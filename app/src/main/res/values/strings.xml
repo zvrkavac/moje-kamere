@@ -29,10 +29,14 @@
     <string name="qr_added">Kamera dodana: %1$s</string>
     <string name="qr_no_network">Nema mreze. Spoji TV na Wi-Fi/mrezu.</string>
     <string name="qr_server_fail">Ne mogu pokrenuti server na TV-u.</string>
+    <string name="qr_added_count">Dodano kamera: %1$d. Pritisni Nazad za pregled na TV-u.</string>
+    <string name="version_label">Verzija %1$s (build %2$d)</string>
+    <string name="check_update">Provjeri azuriranje</string>
+    <string name="update_checking">Provjeravam...</string>
+    <string name="update_up_to_date">Imate najnoviju verziju.</string>
+    <string name="update_found">Dostupna nova verzija: %1$s</string>
     <string name="update_title">Dostupna nova verzija</string>
     <string name="update_available">Nova verzija %1$s je dostupna. Azuriraj sada?</string>
     <string name="update_now">Azuriraj</string>
     <string name="later">Kasnije</string>
-    <string name="update_url_label">URL za automatsko azuriranje (version.json)</string>
-    <string name="update_url_hint">https://tvoj-server.com/kamere/version.json</string>
 </resources>
