@@ -5,14 +5,19 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 
-/**
- * Persists the camera list in SharedPreferences as JSON.
- * Seeded with the two house cameras on first run; fully editable from Settings.
- */
 object CameraStore {
 
     private const val PREFS = "kameratv_prefs"
     private const val KEY = "cameras"
+    private const val KEY_UPDATE_URL = "update_url"
+
+    fun getUpdateUrl(ctx: Context): String {
+        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_UPDATE_URL, "") ?: ""
+    }
+
+    fun setUpdateUrl(ctx: Context, url: String) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_UPDATE_URL, url.trim()).apply()
+    }
 
     fun load(ctx: Context): MutableList<Camera> {
         val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -72,8 +77,6 @@ object CameraStore {
     }
 
     private fun defaultCameras(): MutableList<Camera> = mutableListOf(
-        // Lozinka se NE drži ovdje. Upiši pravi RTSP URL (sa korisnikom i lozinkom)
-        // u aplikaciji: Postavke -> Uredi.
         Camera(UUID.randomUUID().toString(), "Kuca kamera", "rtsp://USER:PASS@192.168.0.103:554/stream1"),
         Camera(UUID.randomUUID().toString(), "Kuca kamera Ulaz", "rtsp://USER:PASS@192.168.0.207:554/stream1")
     )

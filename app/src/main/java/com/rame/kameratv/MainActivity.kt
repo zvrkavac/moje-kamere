@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.GridLayoutManager
@@ -28,6 +29,40 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.settingsButton).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.scanButton).setOnClickListener {
+            startActivity(Intent(this, ScanActivity::class.java))
+        }
+
+        checkForUpdate()
+    }
+
+    private var updatePrompted = false
+
+    private fun checkForUpdate() {
+        val url = CameraStore.getUpdateUrl(this)
+        if (url.isBlank()) return
+        UpdateChecker.check(this, url) { info ->
+            if (info == null) return@check
+            runOnUiThread {
+                if (isFinishing || updatePrompted) return@runOnUiThread
+                updatePrompted = true
+                val msg = getString(R.string.update_available, info.versionName) +
+                    (if (info.notes.isNotBlank()) "\n\n" + info.notes else "")
+                AlertDialog.Builder(this)
+                    .setTitle(R.string.update_title)
+                    .setMessage(msg)
+                    .setPositiveButton(R.string.update_now) { _, _ ->
+                        UpdateChecker.downloadAndInstall(this, info.apkUrl) { err ->
+                            runOnUiThread {
+                                android.widget.Toast.makeText(this, err, android.widget.Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                    .setNegativeButton(R.string.later, null)
+                    .show()
+            }
         }
     }
 

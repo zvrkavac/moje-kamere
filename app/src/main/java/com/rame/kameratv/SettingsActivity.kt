@@ -10,6 +10,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
+
+
 /**
  * Manage the camera list: add, edit, delete. Usable with a TV remote.
  */
@@ -25,6 +27,13 @@ class SettingsActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.addButton).setOnClickListener {
             showEditDialog(null)
+        }
+
+        val urlField = findViewById<EditText>(R.id.updateUrlField)
+        urlField.setText(CameraStore.getUpdateUrl(this))
+        findViewById<Button>(R.id.saveUrlButton).setOnClickListener {
+            CameraStore.setUpdateUrl(this, urlField.text.toString())
+            Toast.makeText(this, R.string.saved, Toast.LENGTH_SHORT).show()
         }
     }
 
