@@ -18,9 +18,22 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+      - name: Decode signing keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > app/keystore.jks
+            echo "Keystore decoded."
+          else
+            echo "No KEYSTORE_B64 secret set - using default debug key."
+          fi
       - name: Build debug APK
         env:
           VERSION_CODE: ${{ github.run_number }}
+          KS_STORE_PASS: ${{ secrets.KS_STORE_PASS }}
+          KS_KEY_PASS: ${{ secrets.KS_KEY_PASS }}
+          KS_KEY_ALIAS: kameratv
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
@@ -28,7 +41,7 @@ jobs:
         run: |
           mkdir -p out
           cp app/build/outputs/apk/debug/app-debug.apk out/app-debug.apk
-          printf '{\n  "versionCode": %s,\n  "versionName": "1.3",\n  "apkUrl": "https://github.com/zvrkavac/moje-kamere/releases/latest/download/app-debug.apk",\n  "notes": "Nova verzija aplikacije Moje Kamere."\n}\n' "${{ github.run_number }}" > out/version.json
+          printf '{\n  "versionCode": %s,\n  "versionName": "1.4",\n  "apkUrl": "https://github.com/zvrkavac/moje-kamere/releases/latest/download/app-debug.apk",\n  "notes": "Nova verzija aplikacije Moje Kamere."\n}\n' "${{ github.run_number }}" > out/version.json
           cat out/version.json
       - name: Publish release
         uses: softprops/action-gh-release@v2

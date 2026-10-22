@@ -7,18 +7,35 @@ android {
     namespace 'com.rame.kameratv'
     compileSdk 34
 
+    signingConfigs {
+        appkey {
+            storeFile file("keystore.jks")
+            storePassword System.getenv("KS_STORE_PASS") ?: ""
+            keyAlias System.getenv("KS_KEY_ALIAS") ?: "kameratv"
+            keyPassword System.getenv("KS_KEY_PASS") ?: ""
+        }
+    }
+
     defaultConfig {
         applicationId "com.rame.kameratv"
         minSdk 21
         targetSdk 34
         versionCode ((System.getenv("VERSION_CODE") ?: "1") as int)
-        versionName "1.3"
+        versionName "1.4"
     }
 
     buildTypes {
+        debug {
+            if (file("keystore.jks").exists()) {
+                signingConfig signingConfigs.appkey
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (file("keystore.jks").exists()) {
+                signingConfig signingConfigs.appkey
+            }
         }
     }
 
