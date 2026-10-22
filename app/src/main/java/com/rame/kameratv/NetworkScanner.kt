@@ -33,28 +33,36 @@ object NetworkScanner {
                     }
                 }
             }
-        } catch (_: Exception) {
-        }
+        } catch (_: Exception) {}
         return null
     }
 
-    fun cancel() {
-        cancelled = true
+    fun localIp(): String? {
+        try {
+            val ifaces = NetworkInterface.getNetworkInterfaces() ?: return null
+            for (ni in ifaces) {
+                if (!ni.isUp || ni.isLoopback) continue
+                for (addr in ni.inetAddresses) {
+                    if (addr is Inet4Address && addr.isSiteLocalAddress) {
+                        return addr.hostAddress
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+        return null
     }
+
+    fun cancel() { cancelled = true }
 
     fun scan(port: Int = 554, timeoutMs: Int = 350, cb: Callback) {
         cancelled = false
         val prefix = localSubnetPrefix()
-        if (prefix == null) {
-            cb.onComplete(emptyList())
-            return
-        }
+        if (prefix == null) { cb.onComplete(emptyList()); return }
         val pool = Executors.newFixedThreadPool(48)
         val found = Collections.synchronizedList(ArrayList<String>())
         val done = AtomicInteger(0)
         val total = 254
         val latch = CountDownLatch(total)
-
         for (i in 1..254) {
             val ip = prefix + i
             pool.execute {
@@ -65,19 +73,14 @@ object NetworkScanner {
                             found.add(ip)
                             cb.onFound(ip)
                         }
-                    } catch (_: Exception) {
-                    }
+                    } catch (_: Exception) {}
                 }
                 cb.onProgress(done.incrementAndGet(), total)
                 latch.countDown()
             }
         }
-
         Thread {
-            try {
-                latch.await()
-            } catch (_: InterruptedException) {
-            }
+            try { latch.await() } catch (_: InterruptedException) {}
             pool.shutdownNow()
             val result = ArrayList(found)
             result.sortBy { ipKey(it) }
@@ -85,8 +88,5 @@ object NetworkScanner {
         }.start()
     }
 
-    private fun ipKey(ip: String): Int {
-        val last = ip.substringAfterLast('.').toIntOrNull() ?: 0
-        return last
-    }
+    private fun ipKey(ip: String): Int = ip.substringAfterLast('.').toIntOrNull() ?: 0
 }

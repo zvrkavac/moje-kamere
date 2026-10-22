@@ -23,6 +23,12 @@
     <string name="scan_none">Nijedna kamera (RTSP port 554) nije pronadjena. Provjeri da su kamere upaljene i na istoj mrezi.</string>
     <string name="scan_found">Pronadjeno uredjaja s kamerom: %1$d. Klikni Dodaj i upisi korisnika/lozinku.</string>
     <string name="camera_added">Kamera dodana</string>
+    <string name="qr_button">Telefon (QR)</string>
+    <string name="qr_title">Dodaj kameru preko telefona</string>
+    <string name="qr_instructions">Skeniraj QR kod kamerom telefona (isti Wi-Fi) i upisi podatke kamere.</string>
+    <string name="qr_added">Kamera dodana: %1$s</string>
+    <string name="qr_no_network">Nema mreze. Spoji TV na Wi-Fi/mrezu.</string>
+    <string name="qr_server_fail">Ne mogu pokrenuti server na TV-u.</string>
     <string name="update_title">Dostupna nova verzija</string>
     <string name="update_available">Nova verzija %1$s je dostupna. Azuriraj sada?</string>
     <string name="update_now">Azuriraj</string>

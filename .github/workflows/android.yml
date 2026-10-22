@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,10 +19,26 @@ jobs:
           distribution: temurin
           java-version: "17"
       - name: Build debug APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
-      - name: Upload APK
+      - name: Prepare update files
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk out/app-debug.apk
+          printf '{\n  "versionCode": %s,\n  "versionName": "1.2",\n  "apkUrl": "https://github.com/zvrkavac/moje-kamere/releases/latest/download/app-debug.apk",\n  "notes": "Nova verzija aplikacije Moje Kamere."\n}\n' "${{ github.run_number }}" > out/version.json
+          cat out/version.json
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Moje Kamere (build ${{ github.run_number }})
+          files: |
+            out/app-debug.apk
+            out/version.json
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: MojeKamere-debug-apk

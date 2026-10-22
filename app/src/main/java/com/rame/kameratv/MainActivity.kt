@@ -30,9 +30,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.settingsButton).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
-
         findViewById<Button>(R.id.scanButton).setOnClickListener {
             startActivity(Intent(this, ScanActivity::class.java))
+        }
+        findViewById<Button>(R.id.qrButton).setOnClickListener {
+            startActivity(Intent(this, QrPairActivity::class.java))
         }
 
         checkForUpdate()

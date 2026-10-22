@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/bg"
+    android:padding="24dp">
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/qr_title" android:textColor="@color/text" android:textSize="24sp" android:textStyle="bold" android:paddingBottom="6dp" />
+    <TextView android:id="@+id/qrStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/text_dim" android:textSize="15sp" android:gravity="center" android:paddingBottom="18dp" />
+    <ImageView android:id="@+id/qrImage" android:layout_width="300dp" android:layout_height="300dp" android:background="#FFFFFF" android:padding="10dp" android:contentDescription="@string/qr_title" />
+    <TextView android:id="@+id/qrUrl" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/accent" android:textSize="16sp" android:paddingTop="16dp" />
+</LinearLayout>

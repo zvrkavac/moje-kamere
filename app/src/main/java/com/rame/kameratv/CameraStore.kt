@@ -10,9 +10,12 @@ object CameraStore {
     private const val PREFS = "kameratv_prefs"
     private const val KEY = "cameras"
     private const val KEY_UPDATE_URL = "update_url"
+    private const val DEFAULT_UPDATE_URL =
+        "https://github.com/zvrkavac/moje-kamere/releases/latest/download/version.json"
 
     fun getUpdateUrl(ctx: Context): String {
-        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_UPDATE_URL, "") ?: ""
+        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString(KEY_UPDATE_URL, DEFAULT_UPDATE_URL) ?: DEFAULT_UPDATE_URL
     }
 
     fun setUpdateUrl(ctx: Context, url: String) {
@@ -49,10 +52,7 @@ object CameraStore {
             o.put("url", c.url)
             arr.put(o)
         }
-        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY, arr.toString())
-            .apply()
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, arr.toString()).apply()
     }
 
     fun add(ctx: Context, name: String, url: String) {
@@ -64,10 +64,7 @@ object CameraStore {
     fun update(ctx: Context, cam: Camera) {
         val list = load(ctx)
         val idx = list.indexOfFirst { it.id == cam.id }
-        if (idx >= 0) {
-            list[idx] = cam
-            save(ctx, list)
-        }
+        if (idx >= 0) { list[idx] = cam; save(ctx, list) }
     }
 
     fun delete(ctx: Context, id: String) {
