@@ -1,6 +1,7 @@
 package com.rame.kameratv
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -25,16 +26,22 @@ class MainActivity : AppCompatActivity() {
 
         grid = findViewById(R.id.camerasGrid)
         empty = findViewById(R.id.emptyLabel)
-        grid.layoutManager = GridLayoutManager(this, 2)
+        grid.layoutManager = GridLayoutManager(this, CameraStore.getColumns(this))
 
-        findViewById<Button>(R.id.settingsButton).setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
+        val accent = CameraStore.getAccentColor(this)
+        val tint = ColorStateList.valueOf(accent)
+
+        findViewById<Button>(R.id.settingsButton).apply {
+            backgroundTintList = tint
+            setOnClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) }
         }
-        findViewById<Button>(R.id.scanButton).setOnClickListener {
-            startActivity(Intent(this, ScanActivity::class.java))
+        findViewById<Button>(R.id.scanButton).apply {
+            backgroundTintList = tint
+            setOnClickListener { startActivity(Intent(this@MainActivity, ScanActivity::class.java)) }
         }
-        findViewById<Button>(R.id.qrButton).setOnClickListener {
-            startActivity(Intent(this, QrPairActivity::class.java))
+        findViewById<Button>(R.id.qrButton).apply {
+            backgroundTintList = tint
+            setOnClickListener { startActivity(Intent(this@MainActivity, QrPairActivity::class.java)) }
         }
 
         checkForUpdate()
@@ -70,10 +77,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        (grid.layoutManager as? GridLayoutManager)?.spanCount = CameraStore.getColumns(this)
         cameras = CameraStore.load(this)
         empty.visibility = if (cameras.isEmpty()) View.VISIBLE else View.GONE
 
-        val a = CameraAdapter(this, cameras) { index ->
+        val a = CameraAdapter(this, cameras, CameraStore.getAccentColor(this)) { index ->
             val i = Intent(this, PlayerActivity::class.java)
             i.putExtra(PlayerActivity.EXTRA_INDEX, index)
             startActivity(i)

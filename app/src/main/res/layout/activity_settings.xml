@@ -67,6 +67,36 @@
             android:text="@string/check_update" />
     </LinearLayout>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/layout_cols"
+        android:textColor="@color/text_dim"
+        android:textSize="13sp"
+        android:paddingBottom="6dp" />
+
+    <LinearLayout
+        android:id="@+id/colsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="14dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/theme_color"
+        android:textColor="@color/text_dim"
+        android:textSize="13sp"
+        android:paddingBottom="6dp" />
+
+    <LinearLayout
+        android:id="@+id/colorRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="14dp" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -78,4 +108,13 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" />
     </ScrollView>
+
+    <TextView
+        android:id="@+id/copyright"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@color/text_dim"
+        android:textSize="12sp"
+        android:paddingTop="10dp" />
 </LinearLayout>

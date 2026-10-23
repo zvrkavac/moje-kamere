@@ -1,5 +1,7 @@
 package com.rame.kameratv
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Button
@@ -10,6 +12,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
+/**
+ * Manage the camera list: add, edit, delete. Usable with a TV remote.
+ * Also shows the app version and lets the user check for an update.
+ */
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var container: LinearLayout
@@ -26,6 +32,7 @@ class SettingsActivity : AppCompatActivity() {
             showEditDialog(null)
         }
 
+        // Version + update section
         val versionText = findViewById<TextView>(R.id.versionText)
         updateStatus = findViewById(R.id.updateStatus)
         versionText.text = getString(R.string.version_label, versionName(), versionCode())
@@ -34,6 +41,62 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.checkUpdateButton).setOnClickListener {
             checkUpdate()
         }
+
+        buildThemeControls()
+    }
+
+    private fun buildThemeControls() {
+        val accent = CameraStore.getAccentColor(this)
+
+        val colsRow = findViewById<LinearLayout>(R.id.colsRow)
+        colsRow.removeAllViews()
+        val currentCols = CameraStore.getColumns(this)
+        for (c in 1..4) {
+            val b = Button(this)
+            b.text = c.toString()
+            b.isAllCaps = false
+            b.setTextColor(0xFFFFFFFF.toInt())
+            b.backgroundTintList = ColorStateList.valueOf(if (c == currentCols) accent else 0xFF3A3F4A.toInt())
+            val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            lp.setMargins(0, 0, 12, 0)
+            b.layoutParams = lp
+            b.setOnClickListener {
+                CameraStore.setColumns(this, c)
+                recreate()
+            }
+            colsRow.addView(b)
+        }
+
+        val colorRow = findViewById<LinearLayout>(R.id.colorRow)
+        colorRow.removeAllViews()
+        val colors = listOf(
+            "Plava" to "#3B82F6",
+            "Zelena" to "#22C55E",
+            "Crvena" to "#EF4444",
+            "Naranca" to "#F59E0B",
+            "Ljubicasta" to "#A855F7"
+        )
+        for ((name, hex) in colors) {
+            val b = Button(this)
+            b.text = name
+            b.isAllCaps = false
+            b.setTextColor(0xFFFFFFFF.toInt())
+            b.backgroundTintList = ColorStateList.valueOf(Color.parseColor(hex))
+            val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            lp.setMargins(0, 0, 10, 0)
+            b.layoutParams = lp
+            b.setOnClickListener {
+                CameraStore.setAccentHex(this, hex)
+                recreate()
+            }
+            colorRow.addView(b)
+        }
+
+        findViewById<TextView>(R.id.copyright).text = "© 2026 Izudin Ramic (Rame)"
     }
 
     private fun versionName(): String {

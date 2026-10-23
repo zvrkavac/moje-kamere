@@ -1,18 +1,32 @@
 package com.rame.kameratv
 
+/*
+ * Moje Kamere - fullscreen camera view with PTZ, digital zoom and snapshot.
+ * Copyright (c) 2026 Izudin Ramic (Rame).
+ */
+
+import android.content.ContentValues
+import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
-import android.view.KeyEvent
+import android.os.Environment
+import android.provider.MediaStore
+import android.view.Gravity
+import android.view.TextureView
+import android.view.View
 import android.view.WindowManager
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import java.io.File
+import java.io.FileOutputStream
 
-/**
- * Fullscreen view of a single camera. D-pad LEFT / RIGHT switches between cameras.
- */
 @UnstableApi
 class PlayerActivity : AppCompatActivity() {
 
@@ -23,21 +37,121 @@ class PlayerActivity : AppCompatActivity() {
     private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
     private lateinit var title: TextView
+    private lateinit var bar: LinearLayout
     private var cameras: List<Camera> = emptyList()
     private var index = 0
+    private var zoom = 1.0f
+    private var accent = 0xFF3B82F6.toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_player)
 
+        accent = CameraStore.getAccentColor(this)
         playerView = findViewById(R.id.fullPlayer)
         title = findViewById(R.id.fullTitle)
+        bar = findViewById(R.id.controlsBar)
         playerView.useController = false
         playerView.isFocusable = false
 
         cameras = CameraStore.load(this)
         index = intent.getIntExtra(EXTRA_INDEX, 0).coerceIn(0, (cameras.size - 1).coerceAtLeast(0))
+
+        buildControls()
+    }
+
+    private fun buildControls() {
+        addBtn("Pret.") { switchCamera(-1) }
+        addBtn("◀") { ptz(-0.6f, 0f) }   // left
+        addBtn("▲") { ptz(0f, 0.6f) }    // up
+        addBtn("▼") { ptz(0f, -0.6f) }   // down
+        addBtn("▶") { ptz(0.6f, 0f) }    // right
+        addBtn("Zoom +") { setZoom(zoom * 1.3f) }
+        addBtn("Zoom -") { setZoom(zoom / 1.3f) }
+        addBtn("Slika") { saveSnapshot() }
+        addBtn("Sljed.") { switchCamera(1) }
+    }
+
+    private fun addBtn(label: String, onClick: () -> Unit) {
+        val b = Button(this)
+        b.text = label
+        b.isAllCaps = false
+        b.setTextColor(0xFFFFFFFF.toInt())
+        b.textSize = 16f
+        b.background = Ui.buttonBg(accent)
+        b.setPadding(28, 16, 28, 16)
+        val lp = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        lp.setMargins(8, 4, 8, 4)
+        b.layoutParams = lp
+        b.isFocusable = true
+        b.setOnClickListener { onClick() }
+        bar.addView(b)
+    }
+
+    private fun setZoom(z: Float) {
+        zoom = z.coerceIn(1.0f, 4.0f)
+        val tv = playerView.videoSurfaceView as? TextureView ?: return
+        tv.pivotX = tv.width / 2f
+        tv.pivotY = tv.height / 2f
+        tv.scaleX = zoom
+        tv.scaleY = zoom
+    }
+
+    private fun switchCamera(delta: Int) {
+        if (cameras.size <= 1) return
+        zoom = 1.0f
+        playAt(index + delta)
+    }
+
+    private fun ptz(panX: Float, tiltY: Float) {
+        if (cameras.isEmpty()) return
+        val cam = OnvifPtz.parse(cameras[index].url)
+        if (cam == null) {
+            toast("PTZ ne radi za ovu kameru")
+            return
+        }
+        OnvifPtz.nudge(cam, panX, tiltY, 0f, 500L) { err ->
+            if (err != null) runOnUiThread { toast("PTZ: $err") }
+        }
+    }
+
+    private fun saveSnapshot() {
+        val tv = playerView.videoSurfaceView as? TextureView
+        val bmp = tv?.bitmap
+        if (bmp == null) {
+            toast("Slika trenutno nije dostupna")
+            return
+        }
+        val name = "kamera_" + System.currentTimeMillis() + ".jpg"
+        try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                val values = ContentValues().apply {
+                    put(MediaStore.Images.Media.DISPLAY_NAME, name)
+                    put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                    put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/MojeKamere")
+                }
+                val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                if (uri != null) {
+                    contentResolver.openOutputStream(uri)?.use { bmp.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+                    toast("Slika spremljena u Galeriju")
+                    return
+                }
+            }
+            val dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: cacheDir
+            val f = File(dir, name)
+            FileOutputStream(f).use { bmp.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+            toast("Slika spremljena")
+        } catch (e: Exception) {
+            toast("Greska pri slikanju: " + (e.message ?: ""))
+        }
+    }
+
+    private fun toast(msg: String) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
     override fun onStart() {
@@ -62,18 +176,8 @@ class PlayerActivity : AppCompatActivity() {
             prepare()
             playWhenReady = true
         }
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_MEDIA_NEXT -> {
-                if (cameras.size > 1) { playAt(index + 1); return true }
-            }
-            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
-                if (cameras.size > 1) { playAt(index - 1); return true }
-            }
-        }
-        return super.onKeyDown(keyCode, event)
+        // reset digital zoom view for the new surface
+        bar.post { setZoom(zoom) }
     }
 
     override fun onStop() {

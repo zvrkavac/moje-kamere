@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 class CameraAdapter(
     private val ctx: Context,
     private var items: List<Camera>,
+    private val accent: Int,
     private val onClick: (Int) -> Unit
 ) : RecyclerView.Adapter<CameraAdapter.VH>() {
 
@@ -39,6 +40,7 @@ class CameraAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val cam = items[position]
         holder.name.text = cam.name
+        holder.itemView.background = Ui.tileBg(accent)
         holder.itemView.setOnClickListener { onClick(holder.bindingAdapterPosition) }
 
         startPlayer(holder, cam)

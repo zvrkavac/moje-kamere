@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black">
@@ -7,20 +8,41 @@
     <androidx.media3.ui.PlayerView
         android:id="@+id/fullPlayer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        app:surface_type="texture_view"
+        app:use_controller="false"
+        app:resize_mode="fit" />
 
     <TextView
         android:id="@+id/fullTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
-        android:layout_margin="24dp"
+        android:layout_margin="20dp"
         android:background="#99000000"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        android:textColor="@color/text"
+        android:textColor="#FFFFFF"
         android:textSize="20sp"
         android:textStyle="bold" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#CC000000"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/controlsBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
+    </HorizontalScrollView>
 </FrameLayout>

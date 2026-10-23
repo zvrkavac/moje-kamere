@@ -16,6 +16,8 @@
     <string name="delete">Obrisi</string>
     <string name="saved">Sacuvano</string>
     <string name="add">Dodaj</string>
+
+    <!-- Network scan -->
     <string name="scan_network">Skeniraj</string>
     <string name="scan_title">Pronadji kamere na mrezi</string>
     <string name="rescan">Skeniraj ponovo</string>
@@ -23,6 +25,8 @@
     <string name="scan_none">Nijedna kamera (RTSP port 554) nije pronadjena. Provjeri da su kamere upaljene i na istoj mrezi.</string>
     <string name="scan_found">Pronadjeno uredjaja s kamerom: %1$d. Klikni Dodaj i upisi korisnika/lozinku.</string>
     <string name="camera_added">Kamera dodana</string>
+
+    <!-- QR pairing -->
     <string name="qr_button">Telefon (QR)</string>
     <string name="qr_title">Dodaj kameru preko telefona</string>
     <string name="qr_instructions">Skeniraj QR kod kamerom telefona (isti Wi-Fi) i upisi podatke kamere.</string>
@@ -30,13 +34,23 @@
     <string name="qr_no_network">Nema mreze. Spoji TV na Wi-Fi/mrezu.</string>
     <string name="qr_server_fail">Ne mogu pokrenuti server na TV-u.</string>
     <string name="qr_added_count">Dodano kamera: %1$d. Pritisni Nazad za pregled na TV-u.</string>
+
+    <!-- Layout / theme -->
+    <string name="layout_cols">Izgled (broj kolona u gridu)</string>
+    <string name="theme_color">Boja teme</string>
+
+    <!-- Version / update status -->
     <string name="version_label">Verzija %1$s (build %2$d)</string>
     <string name="check_update">Provjeri azuriranje</string>
     <string name="update_checking">Provjeravam...</string>
     <string name="update_up_to_date">Imate najnoviju verziju.</string>
     <string name="update_found">Dostupna nova verzija: %1$s</string>
+
+    <!-- Auto-update -->
     <string name="update_title">Dostupna nova verzija</string>
     <string name="update_available">Nova verzija %1$s je dostupna. Azuriraj sada?</string>
     <string name="update_now">Azuriraj</string>
     <string name="later">Kasnije</string>
+    <string name="update_url_label">URL za automatsko azuriranje (version.json)</string>
+    <string name="update_url_hint">https://tvoj-server.com/kamere/version.json</string>
 </resources>
