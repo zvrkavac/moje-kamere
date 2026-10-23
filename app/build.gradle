@@ -21,7 +21,7 @@ android {
         minSdk 21
         targetSdk 34
         versionCode ((System.getenv("VERSION_CODE") ?: "1") as int)
-        versionName "2.2"
+        versionName "2.3"
 
         // libVLC ships native libraries; limit to common Android TV ABIs to keep APK size down.
         ndk {

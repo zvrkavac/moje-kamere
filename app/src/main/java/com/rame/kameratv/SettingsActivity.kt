@@ -1,6 +1,5 @@
 package com.rame.kameratv
 
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -27,9 +26,13 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_settings)
 
         container = findViewById(R.id.camerasContainer)
+        val accent = CameraStore.getAccentColor(this)
 
-        findViewById<Button>(R.id.addButton).setOnClickListener {
-            showEditDialog(null)
+        findViewById<Button>(R.id.addButton).apply {
+            isAllCaps = false
+            setTextColor(0xFFFFFFFF.toInt())
+            background = Ui.actionBg(accent)
+            setOnClickListener { showEditDialog(null) }
         }
 
         // Version + update section
@@ -38,8 +41,11 @@ class SettingsActivity : AppCompatActivity() {
         versionText.text = getString(R.string.version_label, versionName(), versionCode())
         updateStatus.text = ""
 
-        findViewById<Button>(R.id.checkUpdateButton).setOnClickListener {
-            checkUpdate()
+        findViewById<Button>(R.id.checkUpdateButton).apply {
+            isAllCaps = false
+            setTextColor(0xFFFFFFFF.toInt())
+            background = Ui.actionBg(accent)
+            setOnClickListener { checkUpdate() }
         }
 
         buildThemeControls()
@@ -56,7 +62,7 @@ class SettingsActivity : AppCompatActivity() {
             b.text = c.toString()
             b.isAllCaps = false
             b.setTextColor(0xFFFFFFFF.toInt())
-            b.backgroundTintList = ColorStateList.valueOf(if (c == currentCols) accent else 0xFF3A3F4A.toInt())
+            b.background = Ui.focusRing(if (c == currentCols) accent else 0xFF3A3F4A.toInt())
             val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
             )
@@ -83,7 +89,7 @@ class SettingsActivity : AppCompatActivity() {
             b.text = name
             b.isAllCaps = false
             b.setTextColor(0xFFFFFFFF.toInt())
-            b.backgroundTintList = ColorStateList.valueOf(Color.parseColor(hex))
+            b.background = Ui.focusRing(Color.parseColor(hex))
             val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
             )
@@ -153,12 +159,23 @@ class SettingsActivity : AppCompatActivity() {
             return
         }
         val inflater = LayoutInflater.from(this)
+        val accent = CameraStore.getAccentColor(this)
         for (cam in cameras) {
             val row = inflater.inflate(R.layout.item_settings_camera, container, false)
             row.findViewById<TextView>(R.id.rowName).text = cam.name
             row.findViewById<TextView>(R.id.rowUrl).text = cam.url
-            row.findViewById<Button>(R.id.rowEdit).setOnClickListener { showEditDialog(cam) }
-            row.findViewById<Button>(R.id.rowDelete).setOnClickListener { confirmDelete(cam) }
+            row.findViewById<Button>(R.id.rowEdit).apply {
+                isAllCaps = false
+                setTextColor(0xFFFFFFFF.toInt())
+                background = Ui.actionBg(accent)
+                setOnClickListener { showEditDialog(cam) }
+            }
+            row.findViewById<Button>(R.id.rowDelete).apply {
+                isAllCaps = false
+                setTextColor(0xFFFFFFFF.toInt())
+                background = Ui.actionBg(accent)
+                setOnClickListener { confirmDelete(cam) }
+            }
             container.addView(row)
         }
     }

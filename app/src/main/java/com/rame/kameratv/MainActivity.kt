@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
     private fun styleHeaderButton(b: Button, accent: Int, onClick: () -> Unit) {
         b.isAllCaps = false
         b.setTextColor(0xFFFFFFFF.toInt())
-        b.background = Ui.buttonBg(accent)
+        b.background = Ui.actionBg(accent)
         b.setOnClickListener { onClick() }
     }
 

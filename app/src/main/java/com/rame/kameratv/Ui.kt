@@ -67,6 +67,57 @@ object Ui {
         }
     }
 
+    /**
+     * Background for a solid colored action button (e.g. blue "Dodaj kameru").
+     * Normal: the given color. Focused / hovered / pressed: a brighter shade with a
+     * thick white ring, so it is obvious which button the remote or mouse is on.
+     */
+    fun actionBg(color: Int): StateListDrawable {
+        val active = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(14).toFloat()
+            setColor(lighten(color, 0.30f))
+            setStroke(dp(4), Color.WHITE)
+        }
+        val normal = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(14).toFloat()
+            setColor(color)
+            setStroke(dp(1), 0x33000000)
+        }
+        return StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_pressed), active)
+            addState(intArrayOf(android.R.attr.state_focused), active)
+            addState(intArrayOf(android.R.attr.state_hovered), active)
+            addState(intArrayOf(), normal)
+        }
+    }
+
+    /**
+     * Keeps a button's own [base] color (used for the column and theme-color buttons),
+     * but adds a bright white ring when focused / hovered / pressed.
+     */
+    fun focusRing(base: Int): StateListDrawable {
+        val active = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(12).toFloat()
+            setColor(base)
+            setStroke(dp(4), Color.WHITE)
+        }
+        val normal = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(12).toFloat()
+            setColor(base)
+            setStroke(dp(1), 0x33000000)
+        }
+        return StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_pressed), active)
+            addState(intArrayOf(android.R.attr.state_focused), active)
+            addState(intArrayOf(android.R.attr.state_hovered), active)
+            addState(intArrayOf(), normal)
+        }
+    }
+
     /** Blend a color toward white by [amount] (0..1). */
     private fun lighten(color: Int, amount: Float): Int {
         val r = Color.red(color) + ((255 - Color.red(color)) * amount).toInt()
