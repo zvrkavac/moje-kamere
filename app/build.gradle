@@ -21,7 +21,12 @@ android {
         minSdk 21
         targetSdk 34
         versionCode ((System.getenv("VERSION_CODE") ?: "1") as int)
-        versionName "2.0"
+        versionName "2.1"
+
+        // libVLC ships native libraries; limit to common Android TV ABIs to keep APK size down.
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
     }
 
     buildTypes {
@@ -67,4 +72,7 @@ dependencies {
 
     implementation 'com.google.zxing:core:3.5.3'
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
+
+    // libVLC: used only to record RTSP streams to a file (Media3 cannot record).
+    implementation 'org.videolan.android:libvlc-all:3.6.0'
 }

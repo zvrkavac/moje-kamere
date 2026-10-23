@@ -38,6 +38,8 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var playerView: PlayerView
     private lateinit var title: TextView
     private lateinit var bar: LinearLayout
+    private lateinit var recIndicator: TextView
+    private var recBtn: Button? = null
     private var cameras: List<Camera> = emptyList()
     private var index = 0
     private var zoom = 1.0f
@@ -52,6 +54,8 @@ class PlayerActivity : AppCompatActivity() {
         playerView = findViewById(R.id.fullPlayer)
         title = findViewById(R.id.fullTitle)
         bar = findViewById(R.id.controlsBar)
+        recIndicator = findViewById(R.id.recIndicator)
+        recIndicator.visibility = if (Recorder.isRecording()) View.VISIBLE else View.GONE
         playerView.useController = false
         playerView.isFocusable = false
 
@@ -70,10 +74,11 @@ class PlayerActivity : AppCompatActivity() {
         addBtn("Zoom +") { setZoom(zoom * 1.3f) }
         addBtn("Zoom -") { setZoom(zoom / 1.3f) }
         addBtn("Slika") { saveSnapshot() }
+        recBtn = addBtn(if (Recorder.isRecording()) "Zaustavi" else "Snimaj") { toggleRecord() }
         addBtn("Sljed.") { switchCamera(1) }
     }
 
-    private fun addBtn(label: String, onClick: () -> Unit) {
+    private fun addBtn(label: String, onClick: () -> Unit): Button {
         val b = Button(this)
         b.text = label
         b.isAllCaps = false
@@ -90,6 +95,26 @@ class PlayerActivity : AppCompatActivity() {
         b.isFocusable = true
         b.setOnClickListener { onClick() }
         bar.addView(b)
+        return b
+    }
+
+    private fun toggleRecord() {
+        if (cameras.isEmpty()) return
+        if (Recorder.isRecording()) {
+            val saved = Recorder.stop(this)
+            recIndicator.visibility = View.GONE
+            recBtn?.text = "Snimaj"
+            toast(if (saved != null) "Snimak spremljen: $saved" else "Snimanje zaustavljeno")
+        } else {
+            val err = Recorder.start(this, cameras[index].url)
+            if (err == null) {
+                recIndicator.visibility = View.VISIBLE
+                recBtn?.text = "Zaustavi"
+                toast("Snimanje pokrenuto")
+            } else {
+                toast("Greska pri snimanju: $err")
+            }
+        }
     }
 
     private fun setZoom(z: Float) {
@@ -103,6 +128,13 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun switchCamera(delta: Int) {
         if (cameras.size <= 1) return
+        // recording is tied to the current camera's stream; stop it before switching
+        if (Recorder.isRecording()) {
+            val saved = Recorder.stop(this)
+            recIndicator.visibility = View.GONE
+            recBtn?.text = "Snimaj"
+            if (saved != null) toast("Snimak spremljen: $saved")
+        }
         zoom = 1.0f
         playAt(index + delta)
     }
@@ -182,6 +214,9 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        if (Recorder.isRecording()) {
+            Recorder.stop(this)
+        }
         player?.release()
         player = null
         playerView.player = null

@@ -43,6 +43,10 @@ class MainActivity : AppCompatActivity() {
             backgroundTintList = tint
             setOnClickListener { startActivity(Intent(this@MainActivity, QrPairActivity::class.java)) }
         }
+        findViewById<Button>(R.id.recordingsButton).apply {
+            backgroundTintList = tint
+            setOnClickListener { startActivity(Intent(this@MainActivity, RecordingsActivity::class.java)) }
+        }
 
         checkForUpdate()
     }

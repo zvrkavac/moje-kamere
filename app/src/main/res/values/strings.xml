@@ -39,6 +39,10 @@
     <string name="layout_cols">Izgled (broj kolona u gridu)</string>
     <string name="theme_color">Boja teme</string>
 
+    <!-- Recordings -->
+    <string name="recordings">Snimci</string>
+    <string name="no_recordings">Nema snimaka. Otvori kameru i pritisni Snimaj.</string>
+
     <!-- Version / update status -->
     <string name="version_label">Verzija %1$s (build %2$d)</string>
     <string name="check_update">Provjeri azuriranje</string>
