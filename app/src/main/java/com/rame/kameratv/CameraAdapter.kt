@@ -20,6 +20,7 @@ class CameraAdapter(
     private val ctx: Context,
     private var items: List<Camera>,
     private val accent: Int,
+    private val onLongClick: (Int) -> Unit = {},
     private val onClick: (Int) -> Unit
 ) : RecyclerView.Adapter<CameraAdapter.VH>() {
 
@@ -41,7 +42,13 @@ class CameraAdapter(
         val cam = items[position]
         holder.name.text = cam.name
         holder.itemView.background = Ui.tileBg(accent)
+        holder.itemView.isFocusable = true
         holder.itemView.setOnClickListener { onClick(holder.bindingAdapterPosition) }
+        holder.itemView.setOnLongClickListener {
+            val pos = holder.bindingAdapterPosition
+            if (pos != RecyclerView.NO_POSITION) onLongClick(pos)
+            true
+        }
 
         startPlayer(holder, cam)
     }

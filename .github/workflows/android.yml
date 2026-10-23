@@ -41,7 +41,7 @@ jobs:
         run: |
           mkdir -p out
           cp app/build/outputs/apk/debug/app-debug.apk out/app-debug.apk
-          printf '{\n  "versionCode": %s,\n  "versionName": "2.1",\n  "apkUrl": "https://github.com/zvrkavac/moje-kamere/releases/latest/download/app-debug.apk",\n  "notes": "Snimanje na TV + ekran Snimci."\n}\n' "${{ github.run_number }}" > out/version.json
+          printf '{\n  "versionCode": %s,\n  "versionName": "2.2",\n  "apkUrl": "https://github.com/zvrkavac/moje-kamere/releases/latest/download/app-debug.apk",\n  "notes": "Dugmad mijenjaju boju, drzi OK na kameri za Uredi/Obrisi."\n}\n' "${{ github.run_number }}" > out/version.json
           cat out/version.json
       - name: Publish release
         uses: softprops/action-gh-release@v2

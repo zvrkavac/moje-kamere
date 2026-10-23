@@ -33,17 +33,25 @@ object Ui {
         return StateListDrawable().apply {
             addState(intArrayOf(android.R.attr.state_focused), focused)
             addState(intArrayOf(android.R.attr.state_pressed), focused)
+            addState(intArrayOf(android.R.attr.state_hovered), focused)
             addState(intArrayOf(), normal)
         }
     }
 
-    /** Focus-aware background for control buttons (accent fill when focused). */
+    /** Focus/hover-aware background for buttons (accent fill when focused, hovered or pressed). */
     fun buttonBg(accent: Int): StateListDrawable {
-        val focused = GradientDrawable().apply {
+        val active = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = dp(10).toFloat()
             setColor(accent)
             setStroke(dp(3), Color.WHITE)
+        }
+        // slightly lighter tint used only for mouse hover, so it is distinct from focus
+        val hover = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(10).toFloat()
+            setColor(lighten(accent, 0.25f))
+            setStroke(dp(2), Color.WHITE)
         }
         val normal = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
@@ -52,9 +60,18 @@ object Ui {
             setStroke(dp(1), BORDER)
         }
         return StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_focused), focused)
-            addState(intArrayOf(android.R.attr.state_pressed), focused)
+            addState(intArrayOf(android.R.attr.state_pressed), active)
+            addState(intArrayOf(android.R.attr.state_focused), active)
+            addState(intArrayOf(android.R.attr.state_hovered), hover)
             addState(intArrayOf(), normal)
         }
+    }
+
+    /** Blend a color toward white by [amount] (0..1). */
+    private fun lighten(color: Int, amount: Float): Int {
+        val r = Color.red(color) + ((255 - Color.red(color)) * amount).toInt()
+        val g = Color.green(color) + ((255 - Color.green(color)) * amount).toInt()
+        val b = Color.blue(color) + ((255 - Color.blue(color)) * amount).toInt()
+        return Color.rgb(r.coerceIn(0, 255), g.coerceIn(0, 255), b.coerceIn(0, 255))
     }
 }
