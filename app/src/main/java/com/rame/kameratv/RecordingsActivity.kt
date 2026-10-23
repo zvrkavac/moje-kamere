@@ -63,10 +63,8 @@ class RecordingsActivity : AppCompatActivity() {
             row.layoutParams = rowLp
 
             val label = Button(this)
-            label.isAllCaps = false
+            Ui.makeInteractive(label, accent)
             label.gravity = Gravity.CENTER_VERTICAL or Gravity.START
-            label.setTextColor(0xFFFFFFFF.toInt())
-            label.background = Ui.buttonBg(accent)
             val mb = f.length() / (1024.0 * 1024.0)
             label.text = fmt.format(Date(f.lastModified())) +
                 "   (" + String.format(Locale.US, "%.1f", mb) + " MB)"
@@ -78,10 +76,8 @@ class RecordingsActivity : AppCompatActivity() {
             row.addView(label)
 
             val del = Button(this)
-            del.isAllCaps = false
+            Ui.makeInteractive(del, accent)
             del.text = getString(R.string.delete)
-            del.setTextColor(0xFFFFFFFF.toInt())
-            del.background = Ui.buttonBg(accent)
             del.isFocusable = true
             del.setOnClickListener { confirmDelete(f) }
             row.addView(del)

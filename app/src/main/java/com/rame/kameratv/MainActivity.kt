@@ -50,9 +50,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Give a header button a focus/hover-aware background that changes color. */
     private fun styleHeaderButton(b: Button, accent: Int, onClick: () -> Unit) {
-        b.isAllCaps = false
-        b.setTextColor(0xFFFFFFFF.toInt())
-        b.background = Ui.actionBg(accent)
+        Ui.makeInteractive(b, accent)
         b.setOnClickListener { onClick() }
     }
 

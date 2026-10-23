@@ -28,6 +28,66 @@ object OnvifPtz {
     // ip -> Pair(ptzXAddr, profileToken)
     private val cache = HashMap<String, Pair<String, String>>()
 
+    /**
+     * Ask any ONVIF camera for its RTSP stream URL (works across manufacturers).
+     * [deviceServiceUrl] is the ONVIF device service address from WS-Discovery.
+     * Returns the full rtsp:// URL (with the given credentials injected), or an error.
+     */
+    fun fetchStreamUri(
+        deviceServiceUrl: String,
+        user: String,
+        pass: String,
+        onResult: (rtsp: String?, err: String?) -> Unit
+    ) {
+        Thread {
+            try {
+                val cam = Cam(hostOf(deviceServiceUrl), user, pass)
+                val caps = post(
+                    deviceServiceUrl,
+                    soap(
+                        cam,
+                        "<tds:GetCapabilities xmlns:tds=\"http://www.onvif.org/ver10/device/wsdl\">" +
+                            "<tds:Category>All</tds:Category></tds:GetCapabilities>"
+                    )
+                )
+                val xaddrs = Regex("<[^>]*XAddr>([^<]+)</[^>]*XAddr>")
+                    .findAll(caps).map { it.groupValues[1].trim() }.toList()
+                val media = xaddrs.firstOrNull { it.contains("media", true) }
+                    ?: xaddrs.firstOrNull()
+                    ?: throw Exception("Nema media servisa")
+                val token = getProfileToken(media, cam)
+                val body = soap(
+                    cam,
+                    "<trt:GetStreamUri xmlns:trt=\"http://www.onvif.org/ver10/media/wsdl\" " +
+                        "xmlns:tt=\"http://www.onvif.org/ver10/schema\">" +
+                        "<trt:StreamSetup><tt:Stream>RTP-Unicast</tt:Stream>" +
+                        "<tt:Transport><tt:Protocol>RTSP</tt:Protocol></tt:Transport></trt:StreamSetup>" +
+                        "<trt:ProfileToken>$token</trt:ProfileToken></trt:GetStreamUri>"
+                )
+                val resp = post(media, body)
+                val uri = Regex("<[^>]*Uri>([^<]+)</[^>]*Uri>")
+                    .find(resp)?.groupValues?.get(1)?.trim()
+                    ?: throw Exception("Nema RTSP adrese u odgovoru")
+                onResult(injectCreds(uri, user, pass), null)
+            } catch (e: Exception) {
+                onResult(null, e.message ?: "ONVIF greska")
+            }
+        }.start()
+    }
+
+    private fun hostOf(url: String): String =
+        url.substringAfter("://").substringBefore("/").substringBefore(":")
+
+    private fun injectCreds(uri: String, user: String, pass: String): String {
+        if (user.isEmpty()) return uri
+        val idx = uri.indexOf("://")
+        if (idx < 0) return uri
+        val scheme = uri.substring(0, idx + 3)
+        var rest = uri.substring(idx + 3)
+        if (rest.contains("@")) rest = rest.substringAfter("@")
+        return scheme + user + ":" + pass + "@" + rest
+    }
+
     /** Parse rtsp://user:pass@ip:port/path into a Cam. */
     fun parse(rtsp: String): Cam? {
         return try {

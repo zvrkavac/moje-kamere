@@ -41,7 +41,7 @@ class CameraAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val cam = items[position]
         holder.name.text = cam.name
-        holder.itemView.background = Ui.tileBg(accent)
+        Ui.makeTileInteractive(holder.itemView, accent)
         holder.itemView.isFocusable = true
         holder.itemView.setOnClickListener { onClick(holder.bindingAdapterPosition) }
         holder.itemView.setOnLongClickListener {

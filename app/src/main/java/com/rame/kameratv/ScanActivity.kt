@@ -1,5 +1,11 @@
 package com.rame.kameratv
 
+/*
+ * Moje Kamere - scan the network for cameras of any manufacturer.
+ * Uses ONVIF discovery + a port scan, and can auto-fetch the RTSP URL over ONVIF.
+ * Copyright (c) 2026 Izudin Ramic (Rame).
+ */
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +25,7 @@ class ScanActivity : AppCompatActivity() {
     private lateinit var container: LinearLayout
     private lateinit var rescan: Button
     private var scanning = false
+    private val rows = HashMap<String, View>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +36,8 @@ class ScanActivity : AppCompatActivity() {
         container = findViewById(R.id.scanContainer)
         rescan = findViewById(R.id.rescanButton)
 
+        Ui.makeInteractive(rescan, CameraStore.getAccentColor(this))
+        rescan.text = getString(R.string.rescan)
         rescan.setOnClickListener { startScan() }
         startScan()
     }
@@ -36,13 +45,14 @@ class ScanActivity : AppCompatActivity() {
     private fun startScan() {
         if (scanning) return
         scanning = true
+        rows.clear()
         container.removeAllViews()
         progress.visibility = View.VISIBLE
         progress.progress = 0
         rescan.isEnabled = false
         status.text = getString(R.string.scanning)
 
-        NetworkScanner.scan(cb = object : NetworkScanner.Callback {
+        NetworkScanner.scan(this, object : NetworkScanner.Callback {
             override fun onProgress(done: Int, total: Int) {
                 runOnUiThread {
                     progress.max = total
@@ -50,11 +60,11 @@ class ScanActivity : AppCompatActivity() {
                 }
             }
 
-            override fun onFound(ip: String) {
-                runOnUiThread { addFoundRow(ip) }
+            override fun onFound(dev: NetworkScanner.Device) {
+                runOnUiThread { upsertRow(dev) }
             }
 
-            override fun onComplete(found: List<String>) {
+            override fun onComplete(found: List<NetworkScanner.Device>) {
                 runOnUiThread {
                     scanning = false
                     progress.visibility = View.GONE
@@ -68,35 +78,72 @@ class ScanActivity : AppCompatActivity() {
         })
     }
 
-    private fun addFoundRow(ip: String) {
-        val row = LayoutInflater.from(this).inflate(R.layout.item_scan_result, container, false)
-        row.findViewById<TextView>(R.id.resultIp).text = ip
-        row.findViewById<Button>(R.id.resultAdd).setOnClickListener { showAddDialog(ip) }
-        container.addView(row)
+    private fun upsertRow(dev: NetworkScanner.Device) {
+        val existing = rows[dev.ip]
+        val row = existing ?: LayoutInflater.from(this)
+            .inflate(R.layout.item_scan_result, container, false).also {
+                rows[dev.ip] = it
+                container.addView(it)
+            }
+        val onvif = if (dev.onvifXAddr != null) "  •  ONVIF" else ""
+        val label = if (!dev.label.isNullOrBlank()) "  •  ${dev.label}" else ""
+        row.findViewById<TextView>(R.id.resultIp).text = dev.ip + onvif + label
+        row.findViewById<Button>(R.id.resultAdd).apply {
+            Ui.makeInteractive(this, CameraStore.getAccentColor(this@ScanActivity))
+            text = getString(R.string.add)
+            setOnClickListener { showAddDialog(dev) }
+        }
     }
 
-    private fun showAddDialog(ip: String) {
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_edit_camera, null)
-        val nameField = view.findViewById<EditText>(R.id.fieldName)
-        val urlField = view.findViewById<EditText>(R.id.fieldUrl)
-        nameField.setText("Kamera $ip")
-        urlField.setText("rtsp://user:pass@$ip:554/stream1")
+    private fun showAddDialog(dev: NetworkScanner.Device) {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_scan_add, null)
+        val nameField = view.findViewById<EditText>(R.id.scanName)
+        val userField = view.findViewById<EditText>(R.id.scanUser)
+        val passField = view.findViewById<EditText>(R.id.scanPass)
+        val urlField = view.findViewById<EditText>(R.id.scanUrl)
+        nameField.setText(dev.label?.takeIf { it.isNotBlank() } ?: "Kamera ${dev.ip}")
 
         AlertDialog.Builder(this)
             .setTitle(R.string.add_camera)
             .setView(view)
             .setPositiveButton(R.string.save) { _, _ ->
-                val name = nameField.text.toString().trim()
-                val url = urlField.text.toString().trim()
-                if (name.isEmpty() || url.isEmpty()) {
-                    Toast.makeText(this, R.string.fill_both, Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
+                val name = nameField.text.toString().trim().ifEmpty { "Kamera ${dev.ip}" }
+                val user = userField.text.toString().trim()
+                val pass = passField.text.toString().trim()
+                val typedUrl = urlField.text.toString().trim()
+
+                when {
+                    typedUrl.isNotEmpty() -> {
+                        CameraStore.add(this, name, typedUrl)
+                        Toast.makeText(this, R.string.camera_added, Toast.LENGTH_SHORT).show()
+                    }
+                    dev.onvifXAddr != null -> {
+                        Toast.makeText(this, R.string.fetching_onvif, Toast.LENGTH_SHORT).show()
+                        OnvifPtz.fetchStreamUri(dev.onvifXAddr!!, user, pass) { rtsp, _ ->
+                            runOnUiThread {
+                                if (rtsp != null) {
+                                    CameraStore.add(this, name, rtsp)
+                                    Toast.makeText(this, R.string.camera_added, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    CameraStore.add(this, name, fallbackUrl(dev.ip, user, pass))
+                                    Toast.makeText(this, R.string.onvif_failed, Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+                        CameraStore.add(this, name, fallbackUrl(dev.ip, user, pass))
+                        Toast.makeText(this, R.string.camera_added, Toast.LENGTH_SHORT).show()
+                    }
                 }
-                CameraStore.add(this, name, url)
-                Toast.makeText(this, R.string.camera_added, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    private fun fallbackUrl(ip: String, user: String, pass: String): String {
+        val creds = if (user.isNotEmpty()) "$user:$pass@" else ""
+        return "rtsp://$creds$ip:554/stream1"
     }
 
     override fun onDestroy() {

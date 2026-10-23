@@ -8,6 +8,9 @@ package com.rame.kameratv
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
+import android.view.MotionEvent
+import android.view.View
+import android.widget.TextView
 
 object Ui {
 
@@ -15,6 +18,72 @@ object Ui {
     private const val BORDER = 0xFF2A2E38.toInt()
 
     private fun dp(v: Int): Int = (v * android.content.res.Resources.getSystem().displayMetrics.density).toInt()
+
+    private fun solid(fill: Int, strokeW: Int, strokeColor: Int): GradientDrawable =
+        GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(14).toFloat()
+            setColor(fill)
+            setStroke(strokeW, strokeColor)
+        }
+
+    /**
+     * Makes a button clearly show "you are here": when it gains focus (D-pad) OR the
+     * mouse/pointer hovers over it OR it is pressed, it brightens, gets a thick white
+     * ring AND grows a little. Uses direct focus/hover listeners (not drawable states),
+     * so it works even with air-mouse remotes where state-based highlighting fails.
+     */
+    fun makeInteractive(b: TextView, base: Int) {
+        b.isAllCaps = false
+        b.setTextColor(0xFFFFFFFF.toInt())
+        val normal = solid(base, dp(1), 0x33000000)
+        val active = solid(lighten(base, 0.35f), dp(4), Color.WHITE)
+        b.background = normal
+        val apply = { on: Boolean ->
+            b.background = if (on) active else normal
+            b.animate().scaleX(if (on) 1.12f else 1f).scaleY(if (on) 1.12f else 1f)
+                .setDuration(120).start()
+            b.elevation = if (on) dp(6).toFloat() else 0f
+        }
+        b.setOnFocusChangeListener { _, hasFocus -> apply(hasFocus) }
+        b.setOnHoverListener { _, ev ->
+            when (ev.action) {
+                MotionEvent.ACTION_HOVER_ENTER -> apply(true)
+                MotionEvent.ACTION_HOVER_EXIT -> apply(false)
+            }
+            false
+        }
+    }
+
+    /** Same highlight behaviour for a non-button view (e.g. a camera tile): grow + white ring. */
+    fun makeTileInteractive(v: View, accent: Int) {
+        val normal = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(10).toFloat()
+            setColor(TILE_INNER)
+            setStroke(dp(1), BORDER)
+        }
+        val active = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(10).toFloat()
+            setColor(TILE_INNER)
+            setStroke(dp(5), accent)
+        }
+        v.background = normal
+        val apply = { on: Boolean ->
+            v.background = if (on) active else normal
+            v.animate().scaleX(if (on) 1.06f else 1f).scaleY(if (on) 1.06f else 1f)
+                .setDuration(120).start()
+        }
+        v.setOnFocusChangeListener { _, hasFocus -> apply(hasFocus) }
+        v.setOnHoverListener { _, ev ->
+            when (ev.action) {
+                MotionEvent.ACTION_HOVER_ENTER -> apply(true)
+                MotionEvent.ACTION_HOVER_EXIT -> apply(false)
+            }
+            false
+        }
+    }
 
     /** Focus-aware background for camera tiles (accent stroke when focused). */
     fun tileBg(accent: Int): StateListDrawable {

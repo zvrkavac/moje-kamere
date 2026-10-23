@@ -25,6 +25,11 @@
     <string name="scan_none">Nijedna kamera (RTSP port 554) nije pronadjena. Provjeri da su kamere upaljene i na istoj mrezi.</string>
     <string name="scan_found">Pronadjeno uredjaja s kamerom: %1$d. Klikni Dodaj i upisi korisnika/lozinku.</string>
     <string name="camera_added">Kamera dodana</string>
+    <string name="scan_user">Korisnik</string>
+    <string name="scan_pass">Lozinka</string>
+    <string name="scan_url_optional">RTSP adresa (prazno = ONVIF automatski)</string>
+    <string name="fetching_onvif">Dohvatam RTSP preko ONVIF-a…</string>
+    <string name="onvif_failed">ONVIF nije uspio — dodano sa standardnom adresom, uredi ako treba.</string>
 
     <!-- QR pairing -->
     <string name="qr_button">Telefon (QR)</string>

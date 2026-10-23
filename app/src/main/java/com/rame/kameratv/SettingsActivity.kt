@@ -29,9 +29,7 @@ class SettingsActivity : AppCompatActivity() {
         val accent = CameraStore.getAccentColor(this)
 
         findViewById<Button>(R.id.addButton).apply {
-            isAllCaps = false
-            setTextColor(0xFFFFFFFF.toInt())
-            background = Ui.actionBg(accent)
+            Ui.makeInteractive(this, accent)
             setOnClickListener { showEditDialog(null) }
         }
 
@@ -42,9 +40,7 @@ class SettingsActivity : AppCompatActivity() {
         updateStatus.text = ""
 
         findViewById<Button>(R.id.checkUpdateButton).apply {
-            isAllCaps = false
-            setTextColor(0xFFFFFFFF.toInt())
-            background = Ui.actionBg(accent)
+            Ui.makeInteractive(this, accent)
             setOnClickListener { checkUpdate() }
         }
 
@@ -60,9 +56,7 @@ class SettingsActivity : AppCompatActivity() {
         for (c in 1..4) {
             val b = Button(this)
             b.text = c.toString()
-            b.isAllCaps = false
-            b.setTextColor(0xFFFFFFFF.toInt())
-            b.background = Ui.focusRing(if (c == currentCols) accent else 0xFF3A3F4A.toInt())
+            Ui.makeInteractive(b, if (c == currentCols) accent else 0xFF3A3F4A.toInt())
             val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
             )
@@ -87,9 +81,7 @@ class SettingsActivity : AppCompatActivity() {
         for ((name, hex) in colors) {
             val b = Button(this)
             b.text = name
-            b.isAllCaps = false
-            b.setTextColor(0xFFFFFFFF.toInt())
-            b.background = Ui.focusRing(Color.parseColor(hex))
+            Ui.makeInteractive(b, Color.parseColor(hex))
             val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
             )
@@ -165,15 +157,11 @@ class SettingsActivity : AppCompatActivity() {
             row.findViewById<TextView>(R.id.rowName).text = cam.name
             row.findViewById<TextView>(R.id.rowUrl).text = cam.url
             row.findViewById<Button>(R.id.rowEdit).apply {
-                isAllCaps = false
-                setTextColor(0xFFFFFFFF.toInt())
-                background = Ui.actionBg(accent)
+                Ui.makeInteractive(this, accent)
                 setOnClickListener { showEditDialog(cam) }
             }
             row.findViewById<Button>(R.id.rowDelete).apply {
-                isAllCaps = false
-                setTextColor(0xFFFFFFFF.toInt())
-                background = Ui.actionBg(accent)
+                Ui.makeInteractive(this, accent)
                 setOnClickListener { confirmDelete(cam) }
             }
             container.addView(row)

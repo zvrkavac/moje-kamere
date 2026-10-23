@@ -81,10 +81,8 @@ class PlayerActivity : AppCompatActivity() {
     private fun addBtn(label: String, onClick: () -> Unit): Button {
         val b = Button(this)
         b.text = label
-        b.isAllCaps = false
-        b.setTextColor(0xFFFFFFFF.toInt())
         b.textSize = 16f
-        b.background = Ui.buttonBg(accent)
+        Ui.makeInteractive(b, accent)
         b.setPadding(28, 16, 28, 16)
         val lp = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
