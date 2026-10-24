@@ -13,6 +13,7 @@ package com.rame.kameratv
 import android.content.Context
 import android.net.wifi.WifiManager
 import java.net.DatagramPacket
+import java.net.DatagramSocket
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -103,6 +104,17 @@ object NetworkScanner {
         } catch (_: Exception) {
         }
 
+        // --- 1b) XM / XVV / XMEye broadcast discovery (cheap chinese cameras) ---
+        try {
+            for ((ip, label) in xmSearch(ctx, prefix)) {
+                if (ip == localIp()) continue
+                val d = devices.getOrPut(ip) { Device(ip) }
+                if (d.label.isNullOrBlank()) d.label = label
+                cb.onFound(d)
+            }
+        } catch (_: Exception) {
+        }
+
         // --- 2) TCP port scan ---
         val pool = Executors.newFixedThreadPool(64)
         val total = 254
@@ -116,7 +128,7 @@ object NetworkScanner {
                     for (p in CAMERA_PORTS) {
                         if (cancelled) break
                         try {
-                            Socket().use { it.connect(InetSocketAddress(ip, p), 250) }
+                            Socket().use { it.connect(InetSocketAddress(ip, p), 500) }
                             open.add(p)
                         } catch (_: Exception) {
                         }
@@ -219,6 +231,68 @@ object NetworkScanner {
 
     private fun decodeScope(s: String): String =
         s.replace("%20", " ").replace("%2F", "/").trim()
+
+    /**
+     * XM / XVV / XMEye LAN discovery: broadcast the XM "IP search" packet on UDP 34569
+     * and record any device that answers. These cheap cameras usually do NOT answer
+     * ONVIF discovery, so this is how their own phone apps find them on the network.
+     */
+    private fun xmSearch(ctx: Context, prefix: String): Map<String, String> {
+        val result = HashMap<String, String>()
+        var lock: WifiManager.MulticastLock? = null
+        var sock: DatagramSocket? = null
+        try {
+            val wifi = ctx.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            lock = wifi?.createMulticastLock("kameratv-xm")?.apply {
+                setReferenceCounted(true)
+                acquire()
+            }
+            sock = DatagramSocket(null).apply {
+                reuseAddress = true
+                broadcast = true
+                soTimeout = 600
+                bind(InetSocketAddress(0))
+            }
+            // 20-byte XM header: head=0xff, msgid=1530 (0x05fa, little-endian), empty body
+            val packet = byteArrayOf(
+                0xff.toByte(), 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0,
+                0xfa.toByte(), 0x05,
+                0, 0, 0, 0
+            )
+            val targets = listOf("255.255.255.255", prefix + "255")
+            for (t in targets) {
+                try {
+                    sock.send(DatagramPacket(packet, packet.size, InetAddress.getByName(t), 34569))
+                } catch (_: Exception) {
+                }
+            }
+            val buf = ByteArray(16384)
+            val deadline = System.currentTimeMillis() + 2500
+            while (System.currentTimeMillis() < deadline && !cancelled) {
+                try {
+                    val pkt = DatagramPacket(buf, buf.size)
+                    sock.receive(pkt)
+                    val ip = (pkt.address as? Inet4Address)?.hostAddress ?: continue
+                    result[ip] = "XM/XVV"
+                } catch (_: SocketTimeoutException) {
+                }
+            }
+        } catch (_: Exception) {
+        } finally {
+            try {
+                sock?.close()
+            } catch (_: Exception) {
+            }
+            try {
+                lock?.release()
+            } catch (_: Exception) {
+            }
+        }
+        return result
+    }
 
     private fun ipKey(ip: String): Int = ip.substringAfterLast('.').toIntOrNull() ?: 0
 }

@@ -41,7 +41,7 @@ jobs:
         run: |
           mkdir -p out
           cp app/build/outputs/apk/debug/app-debug.apk out/app-debug.apk
-          printf '{\n  "versionCode": %s,\n  "versionName": "2.4",\n  "apkUrl": "https://github.com/zvrkavac/moje-kamere/releases/latest/download/app-debug.apk",\n  "notes": "Dugmad rastu i svijetle kad si na njima; skener nalazi kamere bilo kog proizvodjaca (ONVIF)."\n}\n' "${{ github.run_number }}" > out/version.json
+          printf '{\n  "versionCode": %s,\n  "versionName": "2.5",\n  "apkUrl": "https://github.com/zvrkavac/moje-kamere/releases/latest/download/app-debug.apk",\n  "notes": "Skener sada nalazi i XM/XVV/XMEye kamere."\n}\n' "${{ github.run_number }}" > out/version.json
           cat out/version.json
       - name: Publish release
         uses: softprops/action-gh-release@v2

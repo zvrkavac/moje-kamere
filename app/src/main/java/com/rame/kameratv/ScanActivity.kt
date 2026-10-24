@@ -125,14 +125,14 @@ class ScanActivity : AppCompatActivity() {
                                     CameraStore.add(this, name, rtsp)
                                     Toast.makeText(this, R.string.camera_added, Toast.LENGTH_SHORT).show()
                                 } else {
-                                    CameraStore.add(this, name, fallbackUrl(dev.ip, user, pass))
+                                    CameraStore.add(this, name, fallbackUrl(dev, user, pass))
                                     Toast.makeText(this, R.string.onvif_failed, Toast.LENGTH_LONG).show()
                                 }
                             }
                         }
                     }
                     else -> {
-                        CameraStore.add(this, name, fallbackUrl(dev.ip, user, pass))
+                        CameraStore.add(this, name, fallbackUrl(dev, user, pass))
                         Toast.makeText(this, R.string.camera_added, Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -141,9 +141,17 @@ class ScanActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun fallbackUrl(ip: String, user: String, pass: String): String {
-        val creds = if (user.isNotEmpty()) "$user:$pass@" else ""
-        return "rtsp://$creds$ip:554/stream1"
+    /** Best-guess RTSP URL. XM/XVV/XMEye cameras use a very different path format. */
+    private fun fallbackUrl(dev: NetworkScanner.Device, user: String, pass: String): String {
+        val ip = dev.ip
+        val isXm = dev.ports.contains(34567) ||
+            (dev.label?.lowercase()?.let { it.contains("xm") || it.contains("xvv") } == true)
+        return if (isXm) {
+            "rtsp://$ip:554/user=$user&password=$pass&channel=1&stream=0.sdp?real_stream"
+        } else {
+            val creds = if (user.isNotEmpty()) "$user:$pass@" else ""
+            "rtsp://$creds$ip:554/stream1"
+        }
     }
 
     override fun onDestroy() {
